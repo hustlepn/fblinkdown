@@ -9,7 +9,10 @@ app = Flask(__name__)
 def index():
     video_url = request.form.get('url')
     links = {}
+    status = None
+
     if video_url:
+        status = "Processing video link..."
         try:
             result = subprocess.run(
                 ['yt-dlp', '-j', video_url],
@@ -21,12 +24,18 @@ def index():
                 raise Exception("yt-dlp failed: " + result.stderr)
             info = json.loads(result.stdout)
             for fmt in info.get('formats', []):
-                url = fmt.get('url'); note = fmt.get('format_note')
+                url = fmt.get('url')
+                note = fmt.get('format_note')
                 if url and note:
                     links[note] = url
+            if not links:
+                status = "No downloadable formats found."
+            else:
+                status = "Success!"
         except Exception as e:
-            links = {"error": str(e)}
-    return render_template('index.html', links=links)
+            status = f"Error: {str(e)}"
+
+    return render_template('index.html', links=links, status=status)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
