@@ -1,12 +1,53 @@
 <!DOCTYPE html>
 <html>
-<head><title>FB Video Downloader</title></head>
+<head>
+  <title>FbVideoSave</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      text-align: center;
+    }
+    h1 {
+      color: #1877F2;
+      font-size: 2.5em;
+      margin-bottom: 0.1em;
+    }
+    p.slogan {
+      margin-top: 0;
+      font-size: 1em;
+      color: gray;
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1em;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #1877F2;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    a {
+      word-break: break-all;
+    }
+  </style>
+</head>
 <body>
-  <h2>Facebook Video Downloader</h2>
+  <h1>FbVideoSave</h1>
+  <p class="slogan">Fast & Free Facebook Video Downloader</p>
+
   <form method="POST">
-    <input type="text" name="url" placeholder="Facebook video URL" style="width:300px;" required>
+    <input type="text" name="url" placeholder="Paste Facebook video URL" required>
+    <br>
     <button type="submit">Download</button>
   </form>
+
   {% if links %}
     <h3>Download Links:</h3>
     <ul>
