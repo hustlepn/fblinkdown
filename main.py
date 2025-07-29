@@ -5,50 +5,43 @@ import os
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    video_url = request.form.get("url")
+    video_url = request.form.get('url')
     links = {}
+    info = {}
     status = None
-    video_info = {}
 
     if video_url:
         try:
+            # Run yt-dlp with custom user-agent to support Instagram
             result = subprocess.run(
-                ["yt-dlp", "-j", video_url],
+                ['yt-dlp', '-j', '--user-agent', 'Mozilla/5.0', video_url],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
-            if result.returncode != 0:
-                status = "Failed to fetch video info. Please check the URL."
-            else:
-                info = json.loads(result.stdout)
 
-                # Get basic video info
-                video_info = {
-                    "title": info.get("title"),
-                    "thumbnail": info.get("thumbnail"),
-                    "duration": info.get("duration_string") or info.get("duration")  # fallback
-                }
+            if result.returncode != 0 or not result.stdout:
+                raise Exception("yt-dlp returned no data")
 
-                for f in info.get("formats", []):
-                    if (
-                        f.get("acodec") != "none"
-                        and f.get("vcodec") != "none"
-                        and f.get("url")
-                    ):
-                        label = f"{f.get('format_note', 'Video')} - {f.get('ext', '')} - {f.get('resolution', '')}"
-                        links[label] = f["url"]
+            info = json.loads(result.stdout)
 
-                if not links:
-                    status = "No valid video formats found."
+            for fmt in info.get('formats', []):
+                if fmt.get('url') and fmt.get('format_note'):
+                    label = fmt['format_note']
+                    links[label] = fmt['url']
+
+            if not links:
+                status = "⚠️ No downloadable formats found. Please try a different link."
 
         except Exception as e:
-            status = f"Error: {str(e)}"
+            print("Error:", e)
+            status = "⚠️ Could not fetch video. Make sure it's public and try again."
 
-    return render_template("index.html", links=links, status=status, info=video_info)
+    return render_template('index.html', links=links, info=info, status=status)
 
-if __name__ == "__main__":
+# For Railway or local testing
+if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=port)
